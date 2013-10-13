@@ -1,0 +1,121 @@
+// Make syntax definitions less painful
+
+// makes << <name> >> into a submatch
+insert(get(Parser, `value), 0, (get(Parser, `rule))(
+	"value",
+	[
+		(get(Parser, `literalMatch))("<<"),
+		(get(Parser, `subMatch))("token"),
+		(get(Parser, `literalMatch))(">>")
+	],
+	function([`parsed, `text], `{
+		(get(Parser, `subMatch))(get(get(parsed, "token"), `name));
+	})
+));
+
+// makes '<string>' into a literal match
+insert(get(Parser, `value), 0, (get(Parser, `rule))(
+	"value",
+	[
+		(get(Parser, `literalMatch))("'"),
+		<<token>>,
+		(get(Parser, `literalMatch))("'")
+	],
+	function([`parsed, `text], `{
+		(get(Parser, `literalMatch))(get(parsed, "token"));
+	})
+));
+
+// defines the = operator
+set(Parser, `assignment, [(get(Parser, `rule))(
+	"assignment",
+	[
+		<<token>>, '"="', <<expression>>
+	],
+	function([`parsed, `text], `{
+		call(`def, [literal(get(parsed, "token")), get(parsed, "expression")]);
+	})
+)]);
+
+insert(get(Parser, `expression), 0, (get(Parser, `rule))(
+	"expression",
+	[
+		<<assignment>>
+	],
+	function([`parsed, `text], `{
+		get(parsed, "assignment");
+	})
+));
+
+set(Parser, `params, [
+	(get(Parser, `rule))(
+		"params",
+		[
+			'")"'
+		],
+		function([`parsed, `text], `{
+			[];
+		})
+	),
+	(get(Parser, `rule))(
+		"params",
+		[
+			<<token>>, '")"'
+		],
+		function([`parsed, `text], `{
+			[literal(get(parsed, "token"))];
+		})
+	),
+	(get(Parser, `rule))(
+		"params",
+		[
+			<<token>>, '","', <<params>>
+		],
+		function([`parsed, `text], `{
+			insert(get(parsed, "params"), 0, literal(get(parsed, "token")));
+			get(parsed, "params");
+		})
+	),
+]);
+
+// syntax for anonymous function creation
+set(Parser, `functionMake, [(get(Parser, `rule))(
+	"functionMake",
+	[
+		'"function"', '"("', <<params>>, <<block>>
+	],
+	function([`parsed, `text], `{
+		call(`function, [get(parsed, "params"), literal(get(parsed, "block"))]);
+	})
+)]);
+
+insert(get(Parser, `expression), 0, (get(Parser, `rule))(
+	"expression",
+	[
+		<<functionMake>>
+	],
+	function([`parsed, `text], `{
+		get(parsed, "functionMake");
+	})
+));
+
+// syntax for function definition
+set(Parser, `functionDef, [(get(Parser, `rule))(
+	"functionDef",
+	[
+		'"function"', <<token>>, '"("', <<params>>, <<block>>
+	],
+	function([`parsed, `text], `{
+		call(`def, [literal(get(parsed, "token")), call(`function, [get(parsed, "params"), literal(get(parsed, "block"))])]);
+	})
+)]);
+
+insert(get(Parser, `statement), 0, (get(Parser, `rule))(
+	"statement",
+	[
+		<<functionDef>>
+	],
+	function(parsed, text) {
+		get(parsed, "functionDef");
+	}
+));

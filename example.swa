@@ -1,0 +1,131 @@
+// comments are ignored
+// like these
+// or these
+
+// press enter twice to end your input, so the screen looks like
+// > input
+// . more input
+// .
+// output
+
+// a statement containing a value shows that value in the interpreter
+1;
+
+// you can add things together
+add(1, 2);
+
+// adding also works for strings
+add("aa", "p");
+
+// you can define variables
+a = 1;
+
+// and use them
+add(a, 2);
+
+// ` is the escaping operator, it makes the interpreter wait with evaluating a value
+// a regular variable will be evaluated to its value
+a;
+
+// an escaped variable will be evaluated to a regular variable
+`a;
+
+// you can escape everything you can put parens around
+`(add(1, 2));
+
+// evaluate them back with the `~ function:
+~ (`(add(1, 2)));
+
+// partial application is possible too! Functions are values like everything else.
+add(1);
+
+add();
+
+add;
+
+// you can add parens around the thing you want to call, too
+// this is needed for more complicated stuff like calling a function you just defined
+(add)(1, 2);
+
+(add(1))(2);
+
+// names can be pretty much anything you want as long as there are spaces after it
+// (and unicode should be handled pretty much as if it's regular latin characters, so distinguished by letter-ness and everything)
+// though it might be a little bit unreadable (and with a little bit, I mean A LOT)
+// the parser doesn't mind at all or anything, it just tries to find the characters for syntax first
+V = print;
+
+;,,; = "Zoidberg";
+
+print("Who is this?");
+
+(V) (;,,; ) ;
+
+// blocks are values too!
+block = {add(1, 2);};
+
+// they get executed when you create them
+type(block);
+
+// if you want to define a block without executing it, use the ` escaping
+actualBlock = `{add(1, 2);};
+
+type(actualBlock);
+
+// and execute it with the `~ function
+~ (actualBlock);
+
+// (they return the value of the last evaluated statement, by the way)
+{1; 2;};
+
+// functions are made by calling `function
+// give it a list of parameter names and an (escaped!) block
+// (the returned value is that of the last executed statement)
+(function(a) {
+	add(1, a);
+})(1);
+
+// closures are here and everything
+function closedAdd(a) {
+	function(b){
+		add(a, b);
+	};
+}
+
+addOne = closedAdd(1);
+
+addFour = closedAdd(4);
+
+addOne(12);
+
+addFour(33);
+
+// now for more fancy stuff
+// Swail exposes its syntax in the Parser namespace
+Parser;
+
+// you can inspect the rules
+get(Parser, `block);
+
+get(Parser, `blockContents);
+
+get(Parser, `statement);
+
+// and you can modify the rules (doing which you can easily break them!)
+// this replaces the <statement> rule with one that requires 'Please' in front and '.' at the end
+// so your programs will be infinitely more polite
+// (this will break definition syntax, but who cares?)
+set(Parser, `statement,							// replace all syntax for statements
+	[(get(Parser, `rule))(						// with one rule
+		"statement",							// for statements
+		[
+			'"Please"', <<expression>>, '"."'	// so they have the form "Please" <expression> "."
+		],
+		function(parsed, text) {				// and use this function to convert the syntax to an actually useful form
+			get(parsed, "expression");			// just give back the expression we managed to parse
+		}
+	)]
+);
+
+// exit the interpreter with `exit
+Please exit(0).
