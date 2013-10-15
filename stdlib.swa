@@ -79,8 +79,8 @@ set(Parser, `params, [
 ]);
 
 // syntax for anonymous function creation
-set(Parser, `functionMake, [(get(Parser, `rule))(
-	"functionMake",
+set(Parser, `lambda, [(get(Parser, `rule))(
+	"lambda",
 	[
 		'"function"', '"("', <<params>>, <<block>>
 	],
@@ -92,10 +92,10 @@ set(Parser, `functionMake, [(get(Parser, `rule))(
 insert(get(Parser, `expression), 0, (get(Parser, `rule))(
 	"expression",
 	[
-		<<functionMake>>
+		<<lambda>>
 	],
 	function([`parsed, `text], `{
-		get(parsed, "functionMake");
+		get(parsed, "lambda");
 	})
 ));
 
@@ -105,9 +105,9 @@ set(Parser, `functionDef, [(get(Parser, `rule))(
 	[
 		'"function"', <<token>>, '"("', <<params>>, <<block>>
 	],
-	function([`parsed, `text], `{
+	function(parsed, text) {
 		call(`def, [literal(get(parsed, "token")), call(`function, [get(parsed, "params"), literal(get(parsed, "block"))])]);
-	})
+	}
 )]);
 
 insert(get(Parser, `statement), 0, (get(Parser, `rule))(
