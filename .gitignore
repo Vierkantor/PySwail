@@ -37,3 +37,7 @@ nosetests.xml
 
 # Sublime text
 *.sublime-*
+
+Swail2.sublime-project
+
+Swail2.sublime-workspace
