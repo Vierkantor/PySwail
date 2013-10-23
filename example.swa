@@ -105,24 +105,24 @@ addFour(33);
 Parser;
 
 // you can inspect the rules
-get(Parser, `block);
+Parser.block;
 
-get(Parser, `blockContents);
+Parser.blockContents;
 
-get(Parser, `statement);
+Parser.statement;
 
 // and you can modify the rules (doing which you can easily break them!)
 // this replaces the <statement> rule with one that requires 'Please' in front and '.' at the end
 // so your programs will be infinitely more polite
 // (this will break definition syntax, but who cares?)
 set(Parser, `statement,							// replace all syntax for statements
-	[(get(Parser, `rule))(						// with one rule
+	[Parser.rule(								// with one rule
 		"statement",							// for statements
 		[
 			'"Please"', <<expression>>, '"."'	// so they have the form "Please" <expression> "."
 		],
 		function(parsed, text) {				// and use this function to convert the syntax to an actually useful form
-			get(parsed, "expression");			// just give back the expression we managed to parse
+			parsed."expression";				// just give back the expression we managed to parse
 		}
 	)]
 );
