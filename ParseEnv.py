@@ -212,12 +212,47 @@ parseEnv.SetVariable("listElements", Data.Value.List([
 	),
 ]), True);
 
-parseEnv.SetVariable("name", Data.Value.List([
+def insertAccess(callEnv, args):
+	list = args[0].Get("nameAccess");
+	list.Insert(Data.Value.Integer(0), args[0].Get("token"));
+	return list;
+
+parseEnv.SetVariable("nameAccess", Data.Value.List([
+	Data.Parser.ParseRule("name",
+		Data.Value.List([
+			Data.Parser.SubMatch(parseEnv, "token"),
+			Data.Parser.LiteralMatch("."),
+			Data.Parser.SubMatch(parseEnv, "nameAccess"),
+		]),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], insertAccess),
+	),
 	Data.Parser.ParseRule("name",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "token"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("token")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([args[0].Get("token")])),
+	),
+]), True);
+
+def resolveAccess(list):
+	if len(list.value) == 1:
+		return list.Get(0);
+	else:
+		return Data.Lang.FunctionCall(
+			"<getter>",
+			Data.Lang.Literal("get", GlobalEnv.globalEnv.GetVariable("get")),	
+			Data.Value.List([
+				resolveAccess(Data.Value.List(list.value[:-1])),
+				Data.Lang.Literal(list.Get(-1).name, list.Get(-1))
+			])
+		);
+
+parseEnv.SetVariable("name", Data.Value.List([
+	Data.Parser.ParseRule("name",
+		Data.Value.List([
+			Data.Parser.SubMatch(parseEnv, "nameAccess"),
+		]),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: resolveAccess(args[0].Get("nameAccess"))),
 	),
 ]), True);
 
