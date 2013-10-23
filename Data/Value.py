@@ -60,6 +60,15 @@ class List(Data.Data.DataValue):
 		Data.Data.DataValue.__init__(self, listType, str(value));
 		self.value = value;
 
+	def Access(self, pos):
+		return self.Get(pos.value);
+
+	def Set(self, pos, value):
+		self.Insert(pos.value, value);
+
+	def Get(self, pos):
+		return self.value[pos];
+	
 	def Append(self, value):
 		self.value.append(value);
 
