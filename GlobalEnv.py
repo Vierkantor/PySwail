@@ -21,6 +21,7 @@ globalEnv.SetVariable("add", Data.Function.PredefinedFunction("<lambda>", ["a", 
 
 def defFunction(callEnv, args):
 	callEnv.SetVariable(args[0].name.value, args[1]);
+	return args[1];
 
 globalEnv.SetVariable("def", Data.Function.PredefinedFunction("<lambda>", ["name", "variable"], defFunction));
 
