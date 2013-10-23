@@ -68,7 +68,7 @@ class List(Data.Data.DataValue):
 
 	def Get(self, pos):
 		return self.value[pos];
-	
+
 	def Append(self, value):
 		self.value.append(value);
 
@@ -111,7 +111,7 @@ class Dict(Data.Data.DataValue):
 		self.value[pos] = value;
 
 	def __str__(self):
-		return "{" + ", ".join(map(str, self.value)) + "]";
+		return "{" + ", ".join(map(lambda key: str(key) + ": " + str(self.value[key]), self.value)) + "}";
 
 	def __getitem__(self, key):
 		return self.value[key];
