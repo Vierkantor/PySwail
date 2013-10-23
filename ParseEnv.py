@@ -239,8 +239,8 @@ def resolveAccess(list):
 		return list.Get(0);
 	else:
 		return Data.Lang.FunctionCall(
-			"<getter>",
-			Data.Lang.Literal("get", GlobalEnv.globalEnv.GetVariable("get")),	
+			Data.Value.String("<getter>"),
+			Data.Lang.Literal(Data.Value.String("get"), GlobalEnv.globalEnv.GetVariable("get")),	
 			Data.Value.List([
 				resolveAccess(Data.Value.List(list.value[:-1])),
 				Data.Lang.Literal(list.Get(-1).name, list.Get(-1))
