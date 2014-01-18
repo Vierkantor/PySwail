@@ -71,8 +71,10 @@ class TokenMatch(Match):
 
 	def Match(self, text, depth):
 		text = Util.SkipWhitespace(text);
-		if text == "" or text == "\n":
-			return "", "token", None;
+		if text == "" or text[0] == "\n":
+			err = SyntaxError("Expected <token>, received <end>.");
+			err.depth = depth;
+			raise err;
 		
 		# a series of digits is an integer
 		match = re.match(r"^(\-?\d+)", text);
