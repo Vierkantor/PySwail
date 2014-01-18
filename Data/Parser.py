@@ -65,7 +65,7 @@ class TokenMatch(Match):
 		# a series of letters is a name, those are always literal tokens
 		match = re.match(r"^(\w+)", text);
 		if match != None:
-			return text[match.end(1):], "token", Data.Value.String(match.group(1));
+			return text[match.end(1):], "token", Data.Value.Variable(Data.Value.String(match.group(1)));
 		
 		# a text with quotes is a string
 		if text[0] == '"' or text[0] == "'":
