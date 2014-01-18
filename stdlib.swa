@@ -34,7 +34,7 @@ set(Parser, `assignment, [
 			<<token>>, '"="', <<expression>>
 		],
 		function([`parsed, `text], `{
-			call(`def, [parsed."token", parsed."expression"]);
+			call(`def, [literal(parsed."token"), parsed."expression"]);
 		})
 	),
 	Parser.rule(
