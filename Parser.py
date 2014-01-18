@@ -7,8 +7,13 @@ import ParseEnv;
 import Util;
 
 def ParseLine(text,):
+	Data.Parser.maxDepth = -1;
 	parser = Data.Parser.SubMatch(ParseEnv.parseEnv, "line");
-	text, name, result = parser.Match(text);
+	try:
+		text, name, result = parser.Match(text, 0);
+	except Data.Parser.SyntaxError as e:
+		raise Data.Parser.deepestErr;
+	
 	if Util.SkipWhitespace(text) != "":
 		raise Data.Parser.SyntaxError("Expected <end>, received " + text);
 	return result;

@@ -15,6 +15,7 @@ parseEnv.SetVariable("line", Data.Value.List([
 	),
 	Data.Parser.ParseRule("line",
 		Data.Value.List([
+			Data.Parser.EndMatch(),
 		]),
 		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: None),
 	),
@@ -235,16 +236,19 @@ parseEnv.SetVariable("nameAccess", Data.Value.List([
 ]), True);
 
 def resolveAccess(list):
-	if len(list.value) == 1:
+	if len(list.value) == 0:
+		return None;
+	elif len(list.value) == 1:
 		return list.Get(0);
 	else:
 		return Data.Lang.FunctionCall(
 			Data.Value.String("<getter>"),
 			Data.Lang.Literal(Data.Value.String("get"), GlobalEnv.globalEnv.GetVariable("get")),	
-			Data.Value.List([
-				resolveAccess(Data.Value.List(list.value[:-1])),
-				Data.Lang.Literal(list.Get(-1).name, list.Get(-1))
-			])
+
+				Data.Value.List([
+					resolveAccess(Data.Value.List(list.value[:-1])),
+					Data.Lang.Literal(list.Get(-1).name, list.Get(-1))
+				])
 		);
 
 parseEnv.SetVariable("name", Data.Value.List([
@@ -253,6 +257,18 @@ parseEnv.SetVariable("name", Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "nameAccess"),
 		]),
 		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: resolveAccess(args[0].Get("nameAccess"))),
+	),
+]), True);
+
+def resolveNameSet(list):
+	return Data.Value.Dict({"tokenPart": list.Get(-1), "getPart": resolveAccess(Data.Value.List(list.value[:-1]))});
+
+parseEnv.SetVariable("nameSet", Data.Value.List([
+	Data.Parser.ParseRule("nameSet",
+		Data.Value.List([
+			Data.Parser.SubMatch(parseEnv, "nameAccess"),
+		]),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: resolveNameSet(args[0].Get("nameAccess"))),
 	),
 ]), True);
 
