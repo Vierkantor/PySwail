@@ -6,6 +6,8 @@ import Data.Environment;
 
 globalEnv = Data.Environment.Environment(None, "Global");
 
+globalEnv.SetVariable("Global", globalEnv);
+
 globalEnv.SetVariable("true", Data.Value.Bool(True));
 globalEnv.SetVariable("false", Data.Value.Bool(False));
 
