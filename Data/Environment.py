@@ -57,3 +57,6 @@ class Environment(Data.Data.DataValue):
 				self.vars[name] = value;
 			else:
 				self.parent.SetVariable(name, value);
+	
+	def __str__(self):
+		return "<Environment> " + self.name + ": [" + ", ".join(map(str, self.vars)) + "]";
