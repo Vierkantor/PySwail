@@ -44,7 +44,6 @@ set(Parser, `assignment, [
 		],
 		function([`parsed, `text], `{
 			def(`result, call(`set, [parsed."nameSet"."getPart", literal(parsed."nameSet"."tokenPart"), parsed."expression"]));
-			print(result);
 			result;
 		})
 	)
@@ -60,7 +59,7 @@ insert(Parser.expression, 0, Parser.rule(
 	})
 ));
 
-set(Parser, `params, [
+Parser.params = [
 	Parser.rule(
 		"params",
 		[
@@ -89,10 +88,10 @@ set(Parser, `params, [
 			parsed."params";
 		})
 	),
-]);
+];
 
 // syntax for anonymous function creation
-set(Parser, `lambda, [Parser.rule(
+Parser.lambda = [Parser.rule(
 	"lambda",
 	[
 		'"function"', '"("', <<params>>, <<block>>
@@ -100,7 +99,7 @@ set(Parser, `lambda, [Parser.rule(
 	function([`parsed, `text], `{
 		call(`function, [parsed."params", literal(parsed."block")]);
 	})
-)]);
+)];
 
 insert(Parser.expression, 0, Parser.rule(
 	"expression",
@@ -113,7 +112,7 @@ insert(Parser.expression, 0, Parser.rule(
 ));
 
 // syntax for function definition
-set(Parser, `functionDef, [Parser.rule(
+Parser.functionDef = [Parser.rule(
 	"functionDef",
 	[
 		'"function"', <<token>>, '"("', <<params>>, <<block>>
@@ -121,7 +120,7 @@ set(Parser, `functionDef, [Parser.rule(
 	function(parsed, text) {
 		call(`def, [literal(parsed."token"), call(`function, [parsed."params", literal(parsed."block")])]);
 	}
-)]);
+)];
 
 insert(Parser.statement, 0, Parser.rule(
 	"statement",
