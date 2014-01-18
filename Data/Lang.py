@@ -57,7 +57,7 @@ class FunctionCall(Data.Data.DataValue):
 		return self.function.Evaluate(env).Call(env, args);
 	
 	def __str__(self):
-		return str(self.name.value);
+		return str(self.function) + "(" + ",".join(map(str, self.args)) + ")";
 
 class Literal(Data.Data.DataValue):
 	def __init__(self, name, value):
