@@ -18,7 +18,7 @@ integerType = Data.Type.Type("Integer");
 
 class Integer(Data.Data.DataValue):
 	def __init__(self, value = 0):
-		Data.Data.DataValue.__init__(self, integerType, str(value));
+		Data.Data.DataValue.__init__(self, integerType, String(str(value)));
 		self.value = value;
 	
 	def __str__(self):
@@ -46,6 +46,12 @@ class String(Data.Data.DataValue):
 	def __init__(self, value):
 		Data.Data.DataValue.__init__(self, stringType, '"' + str(value) + '"');
 		self.value = value;
+	
+	def Access(self, name):
+		if name.type == variableType and name.name.value == "name":
+			return String(self.value);
+		else:
+			return Data.Data.DataValue.Access(self, name);
 	
 	def __str__(self):
 		return '"' + str(self.value) + '"';
