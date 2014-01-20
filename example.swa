@@ -8,20 +8,24 @@
 // .
 // output
 
+// make sure things are true with the assertion syntax:
+# true;
+
 // a statement containing a value shows that value in the interpreter
 1;
 
 // you can add things together
-add(1, 2);
+addition = add(1, 2);
 
-// adding also works for strings
-add("aa", "p");
+# eq(addition, 3);
 
 // you can define variables
 a = 1;
 
 // and use them
-add(a, 2);
+b = add(a, 2);
+
+# eq(b, 3);
 
 // ` is the escaping operator, it makes the interpreter wait with evaluating a value
 // a regular variable will be evaluated to its value
@@ -65,25 +69,36 @@ print("Who is this?");
 block = {add(1, 2);};
 
 // they get executed when you create them
-type(block);
+# eq(block, 3);
 
 // if you want to define a block without executing it, use the ` escaping
 actualBlock = `{add(1, 2);};
 
-type(actualBlock);
-
 // and execute it with the `~ function
-~ (actualBlock);
+evaluated = ~ (actualBlock);
+
+# eq(evaluated, 3);
 
 // (they return the value of the last evaluated statement, by the way)
-{1; 2;};
+evaluated = {1; 2;};
+
+# eq(evaluated, 2);
 
 // functions are made by calling `function
 // give it a list of parameter names and an (escaped!) block
 // (the returned value is that of the last executed statement)
-(function(a) {
+addOne = function([`a], `{
 	add(1, a);
-})(1);
+});
+
+# eq(addOne(3), 4);
+
+// there is a better syntax, obviously
+addTwo = function(a) {
+	add(2, a);
+});
+
+# eq(addTwo(3), 5);
 
 // closures are here and everything
 function closedAdd(a) {
@@ -92,13 +107,13 @@ function closedAdd(a) {
 	};
 }
 
-addOne = closedAdd(1);
+addThree = closedAdd(3);
 
 addFour = closedAdd(4);
 
-addOne(12);
+# eq(addThree(3), 6);
 
-addFour(33);
+# eq(addFour(3), 7);
 
 // now for more fancy stuff
 // Swail exposes its syntax in the Parser namespace
