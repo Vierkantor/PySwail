@@ -7,9 +7,12 @@ class DataValue:
 		self.name = name;
 	
 	def Access(self, name):
-		if name.name.value == "name":
-			return self.name;
-		raise Exception(str(self.name) + " doesn't have member " + str(name));
+		try:
+			if name.name.value == "name":
+				return self.name;
+			return getattr(self, name.name.value);
+		except KeyError:
+			raise Exception(str(self.name) + " doesn't have member " + str(name));
 
 	def Set(self, name, value):
 		raise Exception(str(self.name) + " doesn't have member " + str(name));
