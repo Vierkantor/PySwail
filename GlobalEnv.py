@@ -21,6 +21,11 @@ def addFunction(callEnv, args):
 
 globalEnv.SetVariable("add", Data.Function.PredefinedFunction("<lambda>", ["a", "b"], addFunction));
 
+def eqFunction(callEnv, args):
+	return Data.Value.Bool(args[0].value == args[1].value);
+
+globalEnv.SetVariable("eq", Data.Function.PredefinedFunction("<lambda>", ["a", "b"], eqFunction));
+
 def defFunction(callEnv, args):
 	callEnv.SetVariable(args[0].name.value, args[1]);
 	return args[1];
