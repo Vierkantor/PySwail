@@ -25,3 +25,6 @@ class DataValue:
 	
 	def __str__(self):
 		return "<" + str(self.type) + "> " + str(self.name);
+	
+	def __eq__(self, other):
+		return self is other;

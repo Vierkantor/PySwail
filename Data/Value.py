@@ -13,6 +13,9 @@ class Variable(Data.Data.DataValue):
 	
 	def __str__(self):
 		return str(self.name.value);
+	
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.name == other.name);
 
 integerType = Data.Type.Type("Integer");
 
@@ -26,6 +29,9 @@ class Integer(Data.Data.DataValue):
 	
 	def Evaluate(self, env):
 		return self;
+	
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.value == other.value);
 
 boolType = Data.Type.Type("Bool");
 
@@ -39,6 +45,9 @@ class Bool(Data.Data.DataValue):
 	
 	def Evaluate(self, env):
 		return self;
+
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.value == other.value);
 
 stringType = Data.Type.Type("String");
 
@@ -58,6 +67,9 @@ class String(Data.Data.DataValue):
 	
 	def Evaluate(self, env):
 		return self;
+
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.value == other.value);
 
 listType = Data.Type.Type("List");
 
@@ -100,6 +112,9 @@ class List(Data.Data.DataValue):
 
 		return List(result);
 
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.value == other.value);
+
 dictType = Data.Type.Type("Dict");
 
 class Dict(Data.Data.DataValue):
@@ -131,4 +146,7 @@ class Dict(Data.Data.DataValue):
 			result[element.Evaluate(env)] = (self.value[element].Evaluate(env));
 
 		return Dict(result);
-	
+
+	def __eq__(self, other):
+		return (self.type == other.type) and (self.value == other.value);
+
