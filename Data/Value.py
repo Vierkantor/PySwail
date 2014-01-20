@@ -65,15 +65,18 @@ class List(Data.Data.DataValue):
 
 	def Set(self, pos, value):
 		self.Insert(pos.value, value);
+		return self;
 
 	def Get(self, pos):
 		return self.value[pos];
 
 	def Append(self, value):
 		self.value.append(value);
+		return self;
 
 	def Insert(self, pos, value):
 		self.value.insert(pos.value, value);
+		return self;
 
 	def __str__(self):
 		return "[" + ", ".join(map(str, self.value)) + "]";
