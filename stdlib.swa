@@ -132,3 +132,23 @@ insert(Parser.statement, 0, Parser.rule(
 	}
 ));
 
+// syntax for assertion
+Parser.assert = [Parser.rule(
+	"assert",
+	[
+		''#'', <<expression>>, '';''
+	],
+	function(parsed, text) {
+		call(`if, [parsed."expression", literal(`{}), literal(`{print("Assertion failed"); exit(1);})]);
+	}
+)];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<assert>>
+	],
+	function(parsed, text) {
+		parsed."assert";
+	}
+));
