@@ -32,6 +32,9 @@ class Integer(Data.Data.DataValue):
 	
 	def __eq__(self, other):
 		return (self.type == other.type) and (self.value == other.value);
+	
+	def __bool__(self):
+		return self.value != 0;
 
 boolType = Data.Type.Type("Bool");
 
@@ -48,6 +51,9 @@ class Bool(Data.Data.DataValue):
 
 	def __eq__(self, other):
 		return (self.type == other.type) and (self.value == other.value);
+
+	def __bool__(self):
+		return self.value;
 
 stringType = Data.Type.Type("String");
 
@@ -70,6 +76,9 @@ class String(Data.Data.DataValue):
 
 	def __eq__(self, other):
 		return (self.type == other.type) and (self.value == other.value);
+	
+	def __len__(self):
+		return len(self.value);
 
 listType = Data.Type.Type("List");
 
@@ -115,6 +124,9 @@ class List(Data.Data.DataValue):
 	def __eq__(self, other):
 		return (self.type == other.type) and (self.value == other.value);
 
+	def __len__(self):
+		return len(self.value);
+
 dictType = Data.Type.Type("Dict");
 
 class Dict(Data.Data.DataValue):
@@ -149,4 +161,7 @@ class Dict(Data.Data.DataValue):
 
 	def __eq__(self, other):
 		return (self.type == other.type) and (self.value == other.value);
+	
+	def __len__(self):
+		return len(self.value);
 

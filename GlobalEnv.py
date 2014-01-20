@@ -84,3 +84,8 @@ def literalFunction(callEnv, args):
 	return Data.Lang.Literal("<literal>", args[0]);
 
 globalEnv.SetVariable("literal", Data.Function.PredefinedFunction("<lambda>", ["value"], literalFunction));
+
+def notFunction(callEnv, args):
+	return Data.Value.Bool(not args[0]);
+
+globalEnv.SetVariable("not", Data.Function.PredefinedFunction("<lambda>", ["value"], notFunction));
