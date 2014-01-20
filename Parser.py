@@ -7,7 +7,7 @@ import ParseEnv;
 import Util;
 
 def ParseLine(text,):
-	Data.Parser.maxDepth = -1;
+	Data.Parser.deepestErr = None;
 	parser = Data.Parser.SubMatch(ParseEnv.parseEnv, "line");
 	try:
 		text, name, result = parser.Match(text, 0);

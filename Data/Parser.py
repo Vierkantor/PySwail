@@ -11,8 +11,9 @@ literalMatchType = Data.Type.Type("LiteralMatch");
 subMatchType = Data.Type.Type("SubMatch");
 
 class SyntaxError (Exception):
-	def __init__(self, text):
+	def __init__(self, text, depth):
 		self.text = text;
+		self.depth = depth;
 
 	def __str__(self):
 		return self.text;
@@ -32,6 +33,7 @@ class ParseRule(Data.Data.DataValue):
 		
 		for match in self.list.value:
 			text, name, match = match.Match(text, depth);
+			depth += len(begin) - len(text);
 			result[name] = match;
 
 		return text, self.resolver.Call(env, [Data.Value.Dict(result), Data.Value.String(begin[:len(begin) - len(text)])]);
@@ -56,9 +58,7 @@ class EndMatch(Match):
 	def Match(self, text, depth):
 		text = Util.SkipWhitespace(text);
 		if text != '':
-			err = SyntaxError("Expected <end>, received " + text);
-			err.depth = depth;
-			raise err;
+			raise SyntaxError("Expected <end>, received " + text, depth);
 		
 		return text, "end", None;
 
@@ -72,9 +72,7 @@ class TokenMatch(Match):
 	def Match(self, text, depth):
 		text = Util.SkipWhitespace(text);
 		if text == "" or text[0] == "\n":
-			err = SyntaxError("Expected <token>, received <end>.");
-			err.depth = depth;
-			raise err;
+			raise SyntaxError("Expected <token>, received <end>.", depth);
 		
 		# a series of digits is an integer
 		match = re.match(r"^(\-?\d+)", text);
@@ -102,9 +100,7 @@ class TokenMatch(Match):
 				contents.append(text[0]);
 				text = text[1:];
 				if len(text) == 0:
-					err = SyntaxError("String has no end");
-					err.depth = depth;
-					raise err;
+					raise SyntaxError("String has no end", depth);
 			
 			text = text[1:];
 			return text, "token", Data.Value.String("".join(contents));
@@ -117,9 +113,7 @@ class TokenMatch(Match):
 			else:
 				return text[match.end(1):], "token", Data.Value.Variable(Data.Value.String(match.group(1)));
 		else:
-			err = SyntaxError("Cannot get token from '" + text + "'");
-			err.depth = depth;
-			raise err;
+			raise SyntaxError("Cannot get token from '" + text + "'", depth);
 
 	def __str__(self):
 		return "<<token>>";
@@ -137,14 +131,11 @@ class LiteralMatch(Match):
 		if text[:len(self.match)] == self.match:
 			return text[len(self.match):], self.match, self.match;
 		else:
-			err = SyntaxError("Expected '{}', received '{}'".format(self.match, text));
-			err.depth = depth;
-			raise err;
+			raise SyntaxError("Expected '{}', received '{}'".format(self.match, text), depth);
 	
 	def __str__(self):
 		return "''{}''".format(self.match);
 
-maxDepth = -1;
 errRule = None;
 deepestErr = None;
 
@@ -164,23 +155,18 @@ class SubMatch(Match):
 		
 		for rule in self.env.GetVariable(self.rule).value:
 			try:
-				text, result = rule.Match(text, self.env, depth + 1);
+				text, result = rule.Match(text, self.env, depth);
 				return text, self.rule, result;
 			except SyntaxError as e:
 				lastErr = e;
-				if e.depth >= maxDepth:
-					deepestErr = SyntaxError("While parsing {}:\n{}".format(self.rule, Util.Indent(str(lastErr))));
+				if deepestErr == None or lastErr.depth >= deepestErr.depth:
+					deepestErr = SyntaxError("While parsing {}:\n{}".format(self.rule, Util.Indent(str(lastErr))), lastErr.depth);
 					errRule = rule;
-					maxDepth = e.depth;
 
 		if lastErr != None:
-			err = SyntaxError("While parsing {}:\n{}".format(self.rule, Util.Indent(str(lastErr))));
-			err.depth = depth + 1;
-			raise err;
+			raise SyntaxError("While parsing {}:\n{}".format(self.rule, Util.Indent(str(lastErr))), lastErr.depth);
 
-		err = SyntaxError("No rule defined for <{}>".format(self.rule));
-		err.depth = depth;
-		raise err;
+		raise SyntaxError("No rule defined for <{}>".format(self.rule), depth);
 
 	def __str__(self):
 		return "<<{}>>".format(self.rule);
