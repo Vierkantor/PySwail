@@ -15,5 +15,5 @@ def ParseLine(text,):
 		raise Data.Parser.deepestErr;
 	
 	if Util.SkipWhitespace(text) != "":
-		raise Data.Parser.SyntaxError("Expected <end>, received " + text);
+		raise Data.Parser.SyntaxError("Expected <end>, received " + text, 0);
 	return result;
