@@ -45,7 +45,7 @@ if not args.nostd:
 			if len(line) > 1:
 				try:
 					parsed = Parser.ParseLine(line);
-					if parsed != None:
+					if parsed is not None:
 						parsed.Evaluate(inputEnv);
 				except Exception as e:
 					print("At " + line);
@@ -75,7 +75,7 @@ while True:
 		continue;
 	
 	try:
-		if parsed != None:
+		if parsed is not None:
 			print(parsed.Evaluate(inputEnv));
 	except Exception as e:
 		if args.verbose:
