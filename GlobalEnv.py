@@ -58,7 +58,7 @@ def makeFunctionFunction(callEnv, args):
 globalEnv.SetVariable("function", Data.Function.PredefinedFunction("<lambda>", ["params", "block"], makeFunctionFunction));
 
 def ifFunction(callEnv, args):
-	if args[0].value:
+	if bool(args[0]):
 		return evalFunction(callEnv, [args[1]]);
 	else:
 		return evalFunction(callEnv, [args[2]]);
