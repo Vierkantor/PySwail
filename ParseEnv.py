@@ -6,108 +6,108 @@ import GlobalEnv;
 
 parseEnv = Data.Environment.Environment(GlobalEnv.globalEnv, "Parser");
 
-parseEnv.SetVariable("line", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("line"), Data.Value.List([
 	Data.Parser.ParseRule("line",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "statement"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("statement")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("statement"))),
 	),
 	Data.Parser.ParseRule("line",
 		Data.Value.List([
 			Data.Parser.EndMatch(),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: None),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: None),
 	),
 ]), True);
 
-parseEnv.SetVariable("block", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("block"), Data.Value.List([
 	Data.Parser.ParseRule("block",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("{"),
 			Data.Parser.SubMatch(parseEnv, "blockContents"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Lang.New(args[1], args[0].Get("blockContents"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Lang.New(args[1], args[0].Access(Data.Value.String("blockContents")))),
 	),
 ]), True);
 
 def appendBlock(callEnv, args):
-	block = args[0].Get("blockContents");
-	block.Insert(Data.Value.Integer(0), args[0].Get("statement"));
-	block.name = args[1];
+	block = args[0].Access(Data.Value.String("blockContents"));
+	block.Insert(Data.Value.Integer(0), args[0].Access(Data.Value.String("statement")));
+	block._set("name", args[1]);
 	return block;
 
-parseEnv.SetVariable("blockContents", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("blockContents"), Data.Value.List([
 	Data.Parser.ParseRule("blockContents",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("}"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Lang.Block(args[1], [])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Lang.Block(args[1], [])),
 	),
 	Data.Parser.ParseRule("blockContents",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "statement"),
 			Data.Parser.SubMatch(parseEnv, "blockContents"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], appendBlock),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], appendBlock),
 	),
 ]), True);
 
-parseEnv.SetVariable("statement", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("statement"), Data.Value.List([
 	Data.Parser.ParseRule("statement",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "expression"),
 			Data.Parser.LiteralMatch(";"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("expression")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("expression"))),
 	),
 ]), True);
 
-parseEnv.SetVariable("expression", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("expression"), Data.Value.List([
 	Data.Parser.ParseRule("expression",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "call"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("call")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("call"))),
 	),
 	Data.Parser.ParseRule("expression",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "functionable"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("functionable")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("functionable"))),
 	),
 ]), True);
 
-parseEnv.SetVariable("call", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("call"), Data.Value.List([
 	Data.Parser.ParseRule("call",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "functionable"),
 			Data.Parser.LiteralMatch("("),
 			Data.Parser.SubMatch(parseEnv, "arguments"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Lang.FunctionCall(args[1], args[0].Get("functionable"), args[0].Get("arguments"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Lang.FunctionCall(args[1], args[0].Access(Data.Value.String("functionable")), args[0].Access(Data.Value.String("arguments")))),
 	),
 ]), True);
 
 def appendArgument(callEnv, args):
-	list = args[0].Get("arguments");
-	list.Insert(Data.Value.Integer(0), args[0].Get("expression"));
-	list.name = args[1];
+	list = args[0].Access(Data.Value.String("arguments"));
+	list.Insert(Data.Value.Integer(0), args[0].Access(Data.Value.String("expression")));
+	list._set("name", args[1]);
 	return list;
 
-parseEnv.SetVariable("arguments", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("arguments"), Data.Value.List([
 	Data.Parser.ParseRule("arguments",
 		Data.Value.List([
 			Data.Parser.LiteralMatch(")"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Value.List([])),
 	),
 	Data.Parser.ParseRule("arguments",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "expression"),
 			Data.Parser.LiteralMatch(")"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([args[0].Get("expression")])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Value.List([args[0].Access(Data.Value.String("expression"))])),
 	),
 	Data.Parser.ParseRule("arguments",
 		Data.Value.List([
@@ -115,93 +115,93 @@ parseEnv.SetVariable("arguments", Data.Value.List([
 			Data.Parser.LiteralMatch(","),
 			Data.Parser.SubMatch(parseEnv, "arguments"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], appendArgument),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], appendArgument),
 	),
 ]), True);
 
-parseEnv.SetVariable("functionable", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("functionable"), Data.Value.List([
 	Data.Parser.ParseRule("functionable",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("("),
 			Data.Parser.SubMatch(parseEnv, "expression"),
 			Data.Parser.LiteralMatch(")"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("expression")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("expression"))),
 	),
 	Data.Parser.ParseRule("functionable",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "value"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("value")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("value"))),
 	),
 ]), True);
 
-parseEnv.SetVariable("value", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("value"), Data.Value.List([
 	Data.Parser.ParseRule("value",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "literal"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("literal")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("literal"))),
 	),
 	Data.Parser.ParseRule("value",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "block"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("block")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("block"))),
 	),
 	Data.Parser.ParseRule("value",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "list"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("list")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("list"))),
 	),
 	Data.Parser.ParseRule("value",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "name"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("name")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("name"))),
 	),
 ]), True);
 
-parseEnv.SetVariable("literal", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("literal"), Data.Value.List([
 	Data.Parser.ParseRule("literal",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("`"),
 			Data.Parser.SubMatch(parseEnv, "functionable"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Lang.Literal(args[1], args[0].Get("functionable"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Lang.Literal(args[1], args[0].Access(Data.Value.String("functionable")))),
 	),
 ]), True);
 
-parseEnv.SetVariable("list", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("list"), Data.Value.List([
 	Data.Parser.ParseRule("list",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("["),
 			Data.Parser.SubMatch(parseEnv, "listElements"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Lang.New(args[1], args[0].Get("listElements"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Lang.New(args[1], args[0].Access(Data.Value.String("listElements")))),
 	),
 ]), True);
 
 def appendList(callEnv, args):
-	list = args[0].Get("listElements");
-	list.Insert(Data.Value.Integer(0), args[0].Get("expression"));
-	list.name = args[1];
+	list = args[0].Access(Data.Value.String("listElements"));
+	list.Insert(Data.Value.Integer(0), args[0].Access(Data.Value.String("expression")));
+	list._set("name", args[1]);
 	return list;
 
-parseEnv.SetVariable("listElements", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("listElements"), Data.Value.List([
 	Data.Parser.ParseRule("listElements",
 		Data.Value.List([
 			Data.Parser.LiteralMatch("]"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Value.List([])),
 	),
 	Data.Parser.ParseRule("listElements",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "expression"),
 			Data.Parser.LiteralMatch("]"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([args[0].Get("expression")])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Value.List([args[0].Access(Data.Value.String("expression"))])),
 	),
 	Data.Parser.ParseRule("listElements",
 		Data.Value.List([
@@ -209,98 +209,103 @@ parseEnv.SetVariable("listElements", Data.Value.List([
 			Data.Parser.LiteralMatch(","),
 			Data.Parser.SubMatch(parseEnv, "listElements"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], appendList),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], appendList),
 	),
 ]), True);
 
 def insertAccess(callEnv, args):
-	list = args[0].Get("nameAccess");
-	list.Insert(Data.Value.Integer(0), args[0].Get("token"));
+	list = args[0].Access(Data.Value.String("nameAccess"));
+	list.Insert(Data.Value.Integer(0), args[0].Access(Data.Value.String("token")));
 	return list;
 
-parseEnv.SetVariable("nameAccess", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("nameAccess"), Data.Value.List([
 	Data.Parser.ParseRule("name",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "token"),
 			Data.Parser.LiteralMatch("."),
 			Data.Parser.SubMatch(parseEnv, "nameAccess"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], insertAccess),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], insertAccess),
 	),
 	Data.Parser.ParseRule("name",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "token"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: Data.Value.List([args[0].Get("token")])),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: Data.Value.List([args[0].Access(Data.Value.String("token"))])),
 	),
 ]), True);
 
 def resolveAccess(list):
-	if len(list.value) == 0:
+	if len(list) == 0:
 		return None;
-	elif len(list.value) == 1:
-		return list.Get(0);
+	elif len(list) == 1:
+		return list.Get(Data.Value.Integer(0));
 	else:
 		return Data.Lang.FunctionCall(
 			Data.Value.String("<getter>"),
-			Data.Lang.Literal(Data.Value.String("get"), GlobalEnv.globalEnv.GetVariable("get")),	
-
-				Data.Value.List([
-					resolveAccess(Data.Value.List(list.value[:-1])),
-					Data.Lang.Literal(list.Get(-1).name, list.Get(-1))
-				])
+			Data.Lang.Literal(Data.Value.String("get"), GlobalEnv.globalEnv.GetVariable(Data.Value.Variable("get"))),
+			Data.Value.List([
+				resolveAccess(Data.Value.List(list._value[:-1])),
+				Data.Lang.Literal(list.Get(Data.Value.Integer(-1)), list.Get(Data.Value.Integer(-1)))
+			])
 		);
 
-parseEnv.SetVariable("name", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("name"), Data.Value.List([
 	Data.Parser.ParseRule("name",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "nameAccess"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: resolveAccess(args[0].Get("nameAccess"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: resolveAccess(args[0].Access(Data.Value.String("nameAccess")))),
 	),
 ]), True);
 
 def resolveNameSet(list):
-	return Data.Value.Dict({"tokenPart": list.Get(-1), "getPart": resolveAccess(Data.Value.List(list.value[:-1]))});
+	return Data.Value.Dict({
+		Data.Value.String("tokenPart"): list.Get(Data.Value.Integer(-1)),
+		Data.Value.String("getPart"): resolveAccess(Data.Value.List(list._value[:-1]))
+	});
 
-parseEnv.SetVariable("nameSet", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("nameSet"), Data.Value.List([
 	Data.Parser.ParseRule("nameSet",
 		Data.Value.List([
 			Data.Parser.SubMatch(parseEnv, "nameAccess"),
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: resolveNameSet(args[0].Get("nameAccess"))),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: resolveNameSet(args[0].Access(Data.Value.String("nameAccess")))),
 	),
 ]), True);
 
-parseEnv.SetVariable("token", Data.Value.List([
+parseEnv.SetVariable(Data.Value.Variable("token"), Data.Value.List([
 	Data.Parser.ParseRule("token",
 		Data.Value.List([
 			Data.Parser.TokenMatch()
 		]),
-		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], lambda callEnv, args: args[0].Get("token")),
+		Data.Function.PredefinedFunction('<lambda>', ['parsed', 'text'], [], lambda callEnv, args: args[0].Access(Data.Value.String("token"))),
 	),
 ]), True);
 
 def makeRule(callEnv, args):
-	return Data.Parser.ParseRule(args[0].value, args[1], args[2]);
+	return Data.Parser.ParseRule(args[0]._value, args[1], args[2]);
 
-parseEnv.SetVariable("rule", 
-	Data.Function.PredefinedFunction("<lambda>", ["name", "matchlist", "resolver"], makeRule),
+parseEnv.SetVariable(Data.Value.Variable("rule"), 
+	Data.Function.PredefinedFunction("<lambda>", ["name", "matchlist", "resolver"], [], makeRule),
 	True
 );
 
 def makeLiteralMatch(callEnv, args):
-	return Data.Parser.LiteralMatch(args[0].value);
+	return Data.Parser.LiteralMatch(args[0]._value);
 
-parseEnv.SetVariable("literalMatch", 
-	Data.Function.PredefinedFunction("<lambda>", ["text"], makeLiteralMatch),
+parseEnv.SetVariable(Data.Value.Variable("literalMatch"), 
+	Data.Function.PredefinedFunction("<lambda>", ["text"], [], makeLiteralMatch),
 	True
 );
 
 def makeSubMatch(callEnv, args):
-	return Data.Parser.SubMatch(parseEnv, args[0].value);
+	if len(args) > 1:
+		return Data.Parser.SubMatch(parseEnv, args[0]._value, args[1]._value);
+	else:
+		return Data.Parser.SubMatch(parseEnv, args[0]._value);
 
-parseEnv.SetVariable("subMatch", 
-	Data.Function.PredefinedFunction("<lambda>", ["rule"], makeSubMatch),
+parseEnv.SetVariable(Data.Value.Variable("subMatch"),
+	Data.Function.PredefinedFunction("<lambda>", ["rule"], ["name"], makeSubMatch),
 	True
 );

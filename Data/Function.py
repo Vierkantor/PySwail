@@ -7,15 +7,21 @@ import Data.Environment;
 functionType = Data.Type.Type("Function");
 
 class Function(Data.Data.DataValue):
-	def __init__(self, name, params):
+	def __init__(self, name, params, optionalParams):
 		Data.Data.DataValue.__init__(self, functionType, name);
-		self.params = params;
+		self._set("params", params);
+		self._set("optionalParams", optionalParams);
 	
 	def Call(self, callingEnv, args):
-		if len(args) < len(self.params):
-			return PartialFunction(self.params, args, self);
-		if len(args) > len(self.params):
-			raise Exception("Too many arguments for " + str(self));
+		if len(args) < len(self._get("params")):
+			return PartialFunction(self, args, self._get("params"), self._get("optionalParams"));
+		if len(args) > len(self._get("params")) + len(self._get("optionalParams")):
+			raise Exception("Too many arguments for {}, expected {} - {}, received {}.".format(
+				str(self),
+				len(self._get("params")),
+				len(self._get("params")) + len(self._get("optionalParams")),
+				len(args),
+			));
 		
 		return self.Exec(callingEnv, args);
 		
@@ -23,43 +29,42 @@ class Function(Data.Data.DataValue):
 		raise Exception("Cannot call " + str(self));
 	
 	def __str__(self):
-		return "function(" + ", ".join(self.params) + ")";
+		return "function " + str(self._get("name")) +  "(" + ", ".join(map(str, self._get("params"))) + ")";
 
 class PartialFunction(Function):
-	def __init__(self, params, stored, function):
-		Function.__init__(self, function.name + "(" + ", ".join(map(str, stored)) + ")", params[len(stored):]);
-		self.stored = stored;
-		self.function = function;
+	def __init__(self, function, stored, params, optionalParams):
+		Function.__init__(self, "{}({})".format(function._get("name"), ", ".join(map(str, stored))), params[len(stored):], optionalParams);
+		self._set("stored", stored);
+		self._set("function", function);
 	
 	def Exec(self, callingEnv, args):
-		return self.function.Call(callingEnv, self.stored + args);
+		return self._get("function").Call(callingEnv, self._get("stored") + args);
 
 class PredefinedFunction(Function):
-	def __init__(self, name, params, function):
-		Function.__init__(self, name, params);
+	def __init__(self, name, params, optionalParams, function):
+		Function.__init__(self, name, params, optionalParams);
 		self.function = function;
 	
 	def Exec(self, callingEnv, args):
 		return self.function(callingEnv, args);
 
 class SwailFunction(Function):
-	def __init__(self, name, parentEnv, params, block):
-		self.parentEnv = parentEnv;
-		self.block = block;
-		parameters = [];
-		for param in params:
-			# make sure we create a new variable and don't overwrite a higher-level one
-			parameters.append(param.name.value);
-					
-		Function.__init__(self, name, parameters);
-
-	def Exec(self, callingEnv, args):
-		env = Data.Environment.Environment(self.parentEnv, "<function>");
-		i = 0;
-		for arg in args:
-			env.vars[self.params[i]] = arg;
-			i = i + 1;
+	def __init__(self, name, parentEnv, params, optionalParams, block):
+		Function.__init__(self, name, params, optionalParams);
 		
-		result = self.block.Evaluate(env);
+		self._set("parentEnv", parentEnv);
+		self._set("block", block);
+	
+	def Exec(self, callingEnv, args):
+		env = Data.Environment.Environment(self._get("parentEnv"), "<function>");
+		i = 0;
+		for param in self._get("params") + self._get("optionalParams"):
+			try:
+				env.SetVariable(param, args[i], True);
+				i = i + 1;
+			except IndexError:
+				break;
+		
+		result = self._get("block").Evaluate(env);
 
 		return result;

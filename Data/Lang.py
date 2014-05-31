@@ -22,28 +22,28 @@ class New(Data.Data.DataValue):
 class Block(Data.Data.DataValue):
 	def __init__(self, name, value):
 		Data.Data.DataValue.__init__(self, blockType, name);
-		self.value = value;
+		self._value = value;
 	
 	def __str__(self):
-		return "{\n  " + "\n  ".join(map(str, self.value)) + "\n}";
+		return "{\n  " + "\n  ".join(map(str, self._value)) + "\n}";
 	
 	def Append(self, value):
-		self.value.append(value);
+		self._value.append(value);
 	
 	def Insert(self, pos, value):
-		self.value.insert(pos.value, value);
+		self._value.insert(pos._value, value);
 	
 	def Construct(self, env):
-		self.env = Data.Environment.Environment(env, "<block>");
+		self._set("env", Data.Environment.Environment(env, "<block>"));
 	
 	def Evaluate(self, env):
 		try:
 			result = None;
-			for statement in self.value:
-				result = statement.Evaluate(self.env);
+			for statement in self._value:
+				result = statement.Evaluate(self._get("env"));
 			return result;
 		except Exception as e:
-			e = Exception("While evaluating " + str(self.name) + ":\n" + Util.Indent(str(e)));
+			e = Exception("While evaluating " + str(self._get("name")) + ":\n" + Util.Indent(str(e)));
 			raise e;
 
 class FunctionCall(Data.Data.DataValue):
@@ -54,7 +54,12 @@ class FunctionCall(Data.Data.DataValue):
 	
 	def Evaluate(self, env):
 		args = [x.Evaluate(env) for x in self.args];
-		return self.function.Evaluate(env).Call(env, args);
+		function = self.function.Evaluate(env);
+		
+		try:
+			return function.Call(env, args);
+		except AttributeError:
+			raise Exception("{} is not a callable object".format(repr(function)));
 	
 	def __str__(self):
 		return str(self.function) + "(" + ",".join(map(str, self.args)) + ")";

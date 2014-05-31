@@ -22,7 +22,7 @@ class Type(Data.Data.DataValue):
 			return False;
 	
 	def __str__(self):
-		return str(self.name);
+		return str(self._get("name"));
 
 typeType = Type("Type");
 typeType.type = typeType;

@@ -11,52 +11,49 @@ environmentType = Data.Type.Type("Environment");
 class Environment(Data.Data.DataValue):
 	def __init__(self, parent, name):
 		Data.Data.DataValue.__init__(self, environmentType, name);
-		self.vars = {};
-		self.parent = parent;
-		self.name = name;
-		if self.parent != None:
-			self.parent.SetVariable(str(self.name), self);
+		self._set("vars", Data.Value.Dict({}));
+		
+		self._set("parent", parent);
+		# add a reference to ourselves in our parent
+		if self._get("parent") != None:
+			self._get("parent").SetVariable(Data.Value.Variable(str(self._get("name"))), self);
 	
 	def Evaluate(self):
 		return self;
-
+	
 	def Access(self, name):
-		if name.type == Data.Value.variableType:
-			return self.GetVariable(name.name.value);
+		if Data.Value.variableType.IsSubtype(name._get("type")):
+			return self.GetVariable(name);
 		else:
 			Data.Data.DataValue.Access(self, name);
-
-	def Set(self, name, value):
-		if name.type == Data.Value.variableType:
-			self.SetVariable(name.name.value, value);
+	
+	def Insert(self, name, value):
+		if Data.Value.variableType.IsSubtype(name._get("type")):
+			self.SetVariable(name, value);
 		else:
-			Data.Data.DataValue.Set(self, name, value);
-
+			Data.Data.DataValue.Insert(self, name, value);
+	
 	def GetVariable(self, name):
-		if name in self.vars:
-			return self.vars[name];
+		if name in self._get("vars"):
+			return self._get("vars").Access(name);
 		
-		if self.parent == None:
-			raise Exception("Unset variable '{}'".format(name));
+		if self._get("parent") == None:
+			raise Exception("Unset variable '{}'".format(repr(name)));
 		
-		return self.parent.GetVariable(name);
+		return self._get("parent").GetVariable(name);
 	
 	def HasVariable(self, name):
-		if self.parent == None:
-			return name in self.vars;
+		if self._get("parent") == None:
+			return name._value in self._get("vars");
 		else:
-			return self.parent.HasVariable(name);
+			return self._get("parent").HasVariable(name);
 	
 	def SetVariable(self, name, value, forceHere = False):
-		if name in self.vars:
-			value.name = name;
-			self.vars[name] = value;
+		if forceHere or name._value in self._get("vars") or not (self._get("parent") != None and self._get("parent").HasVariable(name)):
+			value._set("name", name);
+			self._get("vars").Insert(name, value);
 		else:
-			if forceHere or self.parent == None or not self.parent.HasVariable(name):
-				value.name = name;
-				self.vars[name] = value;
-			else:
-				self.parent.SetVariable(name, value);
+			self._get("parent").SetVariable(name, value);
 	
 	def __str__(self):
-		return "<Environment> " + self.name + ": [" + ", ".join(map(str, self.vars)) + "]";
+		return "<Environment> " + str(self._get("name")) + ": [" + ", ".join(map(str, self._get("vars")._value)) + "]";
