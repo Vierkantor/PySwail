@@ -87,16 +87,16 @@ evaluated = {1; 2;};
 // functions are made by calling `function
 // give it a list of parameter names and an (escaped!) block
 // (the returned value is that of the last executed statement)
-addOne = function([`a], `{
+addOne = function([`a], [], `{
 	add(1, a);
 });
 
 # eq(addOne(3), 4);
 
 // there is a better syntax, obviously
-addTwo = function(a) {
+function addTwo(a) {
 	add(2, a);
-});
+}
 
 # eq(addTwo(3), 5);
 

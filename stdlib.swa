@@ -8,7 +8,7 @@ insert(Parser.value, 0, Parser.rule(
 		Parser.subMatch("token"),
 		Parser.literalMatch(">>")
 	],
-	function([`parsed, `text], `{
+	function([`parsed, `text], [], `{
 		Parser.subMatch(parsed."token".name);
 	})
 ));
@@ -21,7 +21,7 @@ insert(Parser.value, 0, Parser.rule(
 		<<token>>,
 		Parser.literalMatch("'")
 	],
-	function([`parsed, `text], `{
+	function([`parsed, `text], [], `{
 		Parser.literalMatch(parsed."token");
 	})
 ));
@@ -33,7 +33,7 @@ set(Parser, `assignment, [
 		[
 			<<token>>, '"="', <<expression>>
 		],
-		function([`parsed, `text], `{
+		function([`parsed, `text], [], `{
 			call(`def, [literal(parsed."token"), parsed."expression"]);
 		})
 	),
@@ -42,7 +42,7 @@ set(Parser, `assignment, [
 		[
 			<<nameSet>>, '"="', <<expression>>
 		],
-		function([`parsed, `text], `{
+		function([`parsed, `text], [], `{
 			def(`result, call(`set, [parsed."nameSet"."getPart", literal(parsed."nameSet"."tokenPart"), parsed."expression"]));
 			result;
 		})
@@ -54,18 +54,19 @@ insert(Parser.expression, 0, Parser.rule(
 	[
 		<<assignment>>
 	],
-	function([`parsed, `text], `{
+	function([`parsed, `text], [], `{
 		parsed."assignment";
 	})
 ));
 
+// function parameters
 Parser.params = [
 	Parser.rule(
 		"params",
 		[
 			'")"'
 		],
-		function([`parsed, `text], `{
+		function([`parsed, `text], [], `{
 			[];
 		})
 	),
@@ -74,7 +75,7 @@ Parser.params = [
 		[
 			<<token>>, '")"'
 		],
-		function([`parsed, `text], `{
+		function([`parsed, `text], [], `{
 			[literal(parsed."token")];
 		})
 	),
@@ -83,30 +84,32 @@ Parser.params = [
 		[
 			<<token>>, '","', <<params>>
 		],
-		function([`parsed, `text], `{
+		function([`parsed, `text], [], `{
 			insert(parsed."params", 0, literal(parsed."token"));
 			parsed."params";
 		})
-	),
+	)
 ];
 
 // syntax for anonymous function creation
-Parser.lambda = [Parser.rule(
-	"lambda",
-	[
-		'"function"', '"("', <<params>>, <<block>>
-	],
-	function([`parsed, `text], `{
-		call(`function, [parsed."params", literal(parsed."block")]);
-	})
-)];
+Parser.lambda = [
+	Parser.rule(
+		"lambda",
+		[
+			'"function"', '"("', <<params>>, <<block>>
+		],
+		function([`parsed, `text], [], `{
+			call(`function, [parsed."params", [], literal(parsed."block")]);
+		})
+	)
+];
 
 insert(Parser.expression, 0, Parser.rule(
 	"expression",
 	[
 		<<lambda>>
 	],
-	function([`parsed, `text], `{
+	function([`parsed, `text], [], `{
 		parsed."lambda";
 	})
 ));
@@ -118,7 +121,7 @@ Parser.functionDef = [Parser.rule(
 		'"function"', <<token>>, '"("', <<params>>, <<block>>
 	],
 	function(parsed, text) {
-		call(`def, [literal(parsed."token"), call(`function, [parsed."params", literal(parsed."block")])]);
+		call(`def, [literal(parsed."token"), call(`function, [parsed."params", [], literal(parsed."block")])]);
 	}
 )];
 
@@ -132,14 +135,64 @@ insert(Parser.statement, 0, Parser.rule(
 	}
 ));
 
+// extended tokens: <<a as b>>
+insert(Parser.value, 0, Parser.rule(
+	"value",
+	[
+		''<<'', <<token>>, ''as'', <<literal>>, ''>>''
+	],
+	function(parsed, text) {
+		Parser.subMatch(parsed."token".name, ~ (parsed."literal"));
+	}
+));
+
+// if statement
+Parser.if = [
+	Parser.rule(
+		"if",
+		[
+			''if'', ''('', <<expression>>, '')'', <<block>>, ''else'', <<block as `block2>>
+		],
+		function(parsed, text) {
+			call(`if, [parsed."expression", literal(parsed."block"), literal(parsed."block2")]);
+		}
+	),
+	Parser.rule(
+		"if",
+		[
+			''if'', ''('', <<expression>>, '')'', <<block>>
+		],
+		function(parsed, text) {
+			call(`if, [parsed."expression", literal(parsed."block")]);
+		}
+	)
+];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<if>>
+	],
+	function(parsed, text) {
+		parsed."if";
+	}
+));
+
 // syntax for assertion
+function assert(condition) {
+	if (not(condition)) {
+		print("Assertion failed.");
+		exit(1);
+	}
+}
+
 Parser.assert = [Parser.rule(
 	"assert",
 	[
 		''#'', <<expression>>, '';''
 	],
 	function(parsed, text) {
-		call(`if, [parsed."expression", literal(`{}), literal(`{print("Assertion failed"); exit(1);})]);
+		call(`assert, [parsed."expression"]);
 	}
 )];
 
