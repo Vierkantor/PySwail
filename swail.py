@@ -76,7 +76,9 @@ while True:
 	
 	try:
 		if parsed is not None:
-			print(parsed.Evaluate(inputEnv));
+			result = parsed.Evaluate(inputEnv);
+			if result is not None:
+				print(result);
 	except Exception as e:
 		if args.verbose:
 			print("Full stack trace:");
