@@ -3,6 +3,7 @@ import sys;
 import Data.Function;
 import Data.Value;
 import Data.Environment;
+import Data.Struct;
 
 globalEnv = Data.Environment.Environment(None, "Global");
 
@@ -89,3 +90,39 @@ def notFunction(callEnv, args):
 	return Data.Value.Bool(not args[0]);
 
 globalEnv.SetVariable(Data.Value.Variable("not"), Data.Function.PredefinedFunction("<lambda>", ["value"], [], notFunction));
+
+def recordFunction(callEnv, args):
+	name = args[0]
+	fields = args[1]
+	
+	return Data.Struct.Record(name, fields, fields)
+
+globalEnv.SetVariable(Data.Value.Variable("record"), Data.Function.PredefinedFunction("<lambda>", ["name", "fields"], [], recordFunction));
+
+def structFunction(callEnv, args):
+	records = args[0]
+	
+	recordDict = {}
+	for record in records._value:
+		name = record.name._value
+		recordDict[name] = record
+	
+	return Data.Struct.Struct("<struct>", recordDict)
+
+globalEnv.SetVariable(Data.Value.Variable("struct"), Data.Function.PredefinedFunction("<lambda>", ["records"], [], structFunction));
+
+def matchFunction(callEnv, args):
+	record = args[0]
+	options = args[1]
+	
+	for option in options:
+		option = option._value
+		format = option[0]
+		function = option[1]
+		if format == record._get("type"):
+			return function.Call(callEnv, record.values)
+	
+	raise Exception("Incomplete pattern for {}".format(record))
+
+globalEnv.SetVariable(Data.Value.Variable("match"), Data.Function.PredefinedFunction("<lambda>", ["record", "options"], [], matchFunction));
+

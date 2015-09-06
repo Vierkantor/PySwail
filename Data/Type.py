@@ -25,5 +25,6 @@ class Type(Data.Data.DataValue):
 		return str(self._get("name"));
 
 typeType = Type("Type");
-typeType.type = typeType;
+typeType._set("type", typeType);
 noType = Type("Nil");
+

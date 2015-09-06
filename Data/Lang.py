@@ -57,9 +57,11 @@ class FunctionCall(Data.Data.DataValue):
 		function = self.function.Evaluate(env);
 		
 		try:
-			return function.Call(env, args);
+			call = function.Call;
 		except AttributeError:
 			raise Exception("{} is not a callable object".format(repr(function)));
+		
+		return call(env, args)
 	
 	def __str__(self):
 		return str(self.function) + "(" + ",".join(map(str, self.args)) + ")";

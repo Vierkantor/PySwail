@@ -102,7 +102,7 @@ function addTwo(a) {
 
 // closures are here and everything
 function closedAdd(a) {
-	function(b){
+	function(b) {
 		add(a, b);
 	};
 }
@@ -114,6 +114,29 @@ addFour = closedAdd(4);
 # eq(addThree(3), 6);
 
 # eq(addFour(3), 7);
+
+// fancy data structures, which can be pattern matched
+
+tree = struct([
+	record(`leaf, [`val]),
+	record(`node, [`left, `right]),
+]);
+
+exampleTree = tree.node(tree.leaf(1), tree.node(tree.leaf(2), tree.leaf(3)));
+
+function contains(t, value) {
+	match(t, [
+		[tree.node, function(left, right) {
+			or(
+				contains(left, value),
+				contains(right, value),
+			)
+		}],
+		[tree.leaf, function(val) {
+			val == value
+		}],
+	])
+}
 
 // now for more fancy stuff
 // Swail exposes its syntax in the Parser namespace

@@ -1,0 +1,12 @@
+function while(condition, block) {
+	print(condition.type);
+	if (~ (condition) ) {
+		~ (block);
+		while(condition, block);
+	}
+}
+
+a = 0;
+
+while(` (not(eq(a, 10))), `{print(a); a = add(1, a); print(a); } );
+
