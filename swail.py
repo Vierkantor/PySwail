@@ -33,14 +33,13 @@ argparser.add_argument('-v', '--verbose', dest='verbose', action='store_const', 
 argparser.add_argument('-V', '--version', action='version', version='%(prog)s ' + version);
 args = argparser.parse_args();
 
-# execute the stdlib
-if not args.nostd:
-	with open('stdlib.swa', 'r') as stdlibFile:
-		line = stdlibFile.readline();
+def RunFile(filename):
+	with open(filename, 'r') as file:
+		line = file.readline();
 		while line != '':
 			newLine = "<empty>";
 			while newLine != "" and newLine != "\n":
-				newLine = stdlibFile.readline();
+				newLine = file.readline();
 				line = line + newLine;
 			if len(line) > 1:
 				try:
@@ -51,7 +50,11 @@ if not args.nostd:
 					print("At " + line);
 					print(Util.Indent(str(e)));
 					raise e;
-			line = stdlibFile.readline();
+			line = file.readline();
+
+# execute the stdlib
+if not args.nostd:
+	RunFile("stdlib.swa");
 
 # do the read-parse-execute loop
 while True:
