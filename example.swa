@@ -117,10 +117,10 @@ addFour = closedAdd(4);
 
 // fancy data structures, which can be pattern matched
 
-tree = struct([
-	record(`leaf, [`val]),
-	record(`node, [`left, `right]),
-]);
+struct tree {
+	record leaf(val);
+	record node(left, right);
+}
 
 exampleTree = tree.node(tree.leaf(1), tree.node(tree.leaf(2), tree.leaf(3)));
 
@@ -130,12 +130,12 @@ function contains(t, value) {
 			or(
 				contains(left, value),
 				contains(right, value),
-			)
+			);
 		}],
 		[tree.leaf, function(val) {
-			val == value
+			eq(val, value);
 		}],
-	])
+	]);
 }
 
 // now for more fancy stuff

@@ -205,3 +205,46 @@ insert(Parser.statement, 0, Parser.rule(
 		parsed."assert";
 	}
 ));
+
+// syntax for structs
+Parser.struct = [Parser.rule(
+	"struct",
+	[
+		''struct'', <<token>>, ''{'',
+		<<records>>,
+	],
+	function(parsed, text) {
+		call(`def, [literal(parsed."token"), call(`struct, [parsed."records"])]);
+	}
+)];
+
+Parser.records = [
+	Parser.rule("records",
+		[
+			''}'',
+		],
+		function(parsed, text) {
+			[];
+		}
+	),
+	Parser.rule("records",
+		[
+			''record'', <<token>>, ''('', <<params>>, '';'',
+			<<records>>,
+		],
+		function(parsed, text) {
+			insert(parsed."records", 0, call(`record, [literal(parsed."token"), parsed."params"]));
+			parsed."records";
+		}
+	),
+];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<struct>>
+	],
+	function(parsed, text) {
+		parsed."struct";
+	}
+));
