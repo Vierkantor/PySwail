@@ -17,7 +17,7 @@ class Record(Data.Function.Function):
 		return record
 	
 	def __str__(self):
-		return "{}({})".format(self.name, ", ".join(map(str, self.values)))
+		return "record {}({})".format(self.name, ", ".join(map(str, self.values)))
 
 structType = Data.Type.Type("Struct");
 Data.Type.typeType.AddSubtype(structType);
