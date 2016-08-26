@@ -35,43 +35,90 @@ argparser.add_argument('-i', '--inspect', action='store_const', const=True, defa
 argparser.add_argument('file', type=str, default='-', nargs='?', help='The file to run. If "-" or blank, run from stdin.');
 args = argparser.parse_args();
 
-def RunFile(filename):
+def get_lines(source):
+	"""Yield double-newline terminated statements from source.
+	
+	The source should have starting_line and continuing_line methods.
+	On EOF, the source should return '' from either method.
+	Each line ends with \n, both in the source and in this function.
+	Either yields an empty line "\n", or concatenated non-empty lines.
+	"""
+	while True:
+		line = source.starting_line()
+		text = []
+		while line != '\n':
+			if line == '':
+				# end of file
+				yield "".join(text)
+				return
+			text.append(line)
+			line = source.continuing_line()
+		
+		yield "".join(text)
+
+class FileSource:
+	"""A get_lines-compatible source based on a file object."""
+	def __init__(self, source_file):
+		self.source_file = source_file
+	def starting_line(self):
+		return self.source_file.readline()
+	def continuing_line(self):
+		return self.source_file.readline()
+class ReadlineSource:
+	"""A get_lines-compatible source using the readline library."""
+	def __init__(self):
+		self.first_prompt = "> "
+		self.continue_prompt = ". "
+	def input_line(self, prompt=""):
+		"""Read a line from stdin, after asking with a prompt.
+		
+		Nicely handles the case of EOF by printing a final newline.
+		"""
+		try:
+			return input(prompt) + "\n"
+		except EOFError:
+			print()
+			return ""
+	def starting_line(self):
+		return self.input_line(self.first_prompt)
+	def continuing_line(self):
+		return self.input_line(self.continue_prompt)
+
+def RunFile(filename, *, environment=None):
+	"""Execute the statements in a file, returning the resulting environment.
+
+	The filename is considered relative to the current working dir.
+	If an environment is specified, all definitions are run against that environment.
+	If not specified, a new one is made, child of the global environment.
+	"""
+	if not environment:
+		environment = Data.Environment.Environment(GlobalEnv.globalEnv, filename)
+	
 	with open(filename, 'r') as file:
-		line = file.readline();
-		while line != '':
-			newLine = "<empty>";
-			while newLine != "" and newLine != "\n":
-				newLine = file.readline();
-				line = line + newLine;
-			if len(line) > 1:
-				try:
-					parsed = Parser.ParseLine(line);
-					if parsed is not None:
-						parsed.Evaluate(inputEnv);
-				except Exception as e:
-					print("At " + line);
-					print(Util.Indent(str(e)));
-					raise e;
-			line = file.readline();
+		for statement in get_lines(FileSource(file)):
+			if statement == '\n':
+				continue
+			try:
+				parsed = Parser.ParseLine(statement);
+				if parsed is not None:
+					parsed.Evaluate(environment);
+			except Exception as e:
+				print("At " + statement);
+				print(Util.Indent(str(e)));
+				raise e;
+	
+	return environment
 
 # execute the stdlib
 if not args.nostd:
-	RunFile("stdlib.swa");
+	RunFile("stdlib.swa", environment=GlobalEnv.globalEnv)
 
 if args.file != '-':
-	RunFile(args.file);
+	RunFile(args.file, environment=inputEnv);
 
 if args.file == '-' or args.inspect:
 	# do the read-parse-execute loop
-	while True:
-		try:
-			text = input("> ");
-			while text != "" and text[-1:] != "\n":
-				text = text + "\n" + input(". ");
-		except EOFError as e:
-			print("");
-			break;
-		
+	for text in get_lines(ReadlineSource()):
 		try:
 			parsed = Parser.ParseLine(text);
 		except Exception as e:
