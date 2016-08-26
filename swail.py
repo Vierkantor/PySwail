@@ -31,6 +31,8 @@ argparser = ArgumentParser(description = "The Python interpreter for Swail", pro
 argparser.add_argument('-S', '--nostd', dest='nostd', action='store_const', const=True, default=False, help='Do not load the standard library before running input');
 argparser.add_argument('-v', '--verbose', dest='verbose', action='store_const', const=True, default=False, help='Show full stack trace when encountering exceptions');
 argparser.add_argument('-V', '--version', action='version', version='%(prog)s ' + version);
+argparser.add_argument('-i', '--inspect', action='store_const', const=True, default=False, help='Run interactively after executing file.');
+argparser.add_argument('file', type=str, default='-', nargs='?', help='The file to run. If "-" or blank, run from stdin.');
 args = argparser.parse_args();
 
 def RunFile(filename):
@@ -56,36 +58,40 @@ def RunFile(filename):
 if not args.nostd:
 	RunFile("stdlib.swa");
 
-# do the read-parse-execute loop
-while True:
-	try:
-		text = input("> ");
-		while text != "" and text[-1:] != "\n":
-			text = text + "\n" + input(". ");
-	except EOFError as e:
-		print("");
-		break;
-	
-	try:
-		parsed = Parser.ParseLine(text);
-	except Exception as e:
-		print("Exception while parsing <input>:");
-		if args.verbose:
-			print("Full stack trace:");
-			traceback.print_exc();
-		else:
-			print(Util.Indent(str(e)));
-		continue;
-	
-	try:
-		if parsed is not None:
-			result = parsed.Evaluate(inputEnv);
-			if result is not None:
-				print(result);
-	except Exception as e:
-		if args.verbose:
-			print("Full stack trace:");
-			traceback.print_exc();
-		else:
-			print(str(e));
-		continue;
+if args.file != '-':
+	RunFile(args.file);
+
+if args.file == '-' or args.inspect:
+	# do the read-parse-execute loop
+	while True:
+		try:
+			text = input("> ");
+			while text != "" and text[-1:] != "\n":
+				text = text + "\n" + input(". ");
+		except EOFError as e:
+			print("");
+			break;
+		
+		try:
+			parsed = Parser.ParseLine(text);
+		except Exception as e:
+			print("Exception while parsing <input>:");
+			if args.verbose:
+				print("Full stack trace:");
+				traceback.print_exc();
+			else:
+				print(Util.Indent(str(e)));
+			continue;
+		
+		try:
+			if parsed is not None:
+				result = parsed.Evaluate(inputEnv);
+				if result is not None:
+					print(result);
+		except Exception as e:
+			if args.verbose:
+				print("Full stack trace:");
+				traceback.print_exc();
+			else:
+				print(str(e));
+			continue;
