@@ -248,3 +248,8 @@ insert(Parser.statement, 0, Parser.rule(
 		parsed."struct";
 	}
 ));
+
+struct bool {
+	record false();
+	record true();
+}
