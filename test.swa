@@ -1,0 +1,57 @@
+// test suite for a swail implementation
+
+// first, some sanity tests
+
+// if you see any of these lines in an error, comment syntax is broken
+/* including this kind of comment */
+
+/* nested /* comments */ don't end the comment */
+
+// make sure the basic values are defined
+true;
+
+false;
+
+assert;
+
+// assertion syntax, which we use for basically all tests
+# true;
+
+// not false should be true
+# not(false);
+
+// not^2 should be id
+# not(not(true));
+
+// equality checking
+eq;
+
+# eq(true, true);
+
+# eq(false, false);
+
+# not(eq(false, true));
+
+# not(eq(true, false));
+
+// arithmetic
+0;
+
+1;
+
+2;
+
+add;
+
+# eq(1, 1);
+
+// fibonacci sequence
+function fibonacci(i) {
+	if (eq(i, 0)) {
+		return 0;
+	}
+	if (eq(i, 1)) {
+		return 1;
+	}
+	return add(fibonacci(add(i, -1)), fibonacci(add(i, -2)));
+}
