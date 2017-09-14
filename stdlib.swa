@@ -146,65 +146,6 @@ insert(Parser.value, 0, Parser.rule(
 	}
 ));
 
-// if statement
-Parser.if = [
-	Parser.rule(
-		"if",
-		[
-			''if'', ''('', <<expression>>, '')'', <<block>>, ''else'', <<block as `block2>>
-		],
-		function(parsed, text) {
-			call(`if, [parsed."expression", literal(parsed."block"), literal(parsed."block2")]);
-		}
-	),
-	Parser.rule(
-		"if",
-		[
-			''if'', ''('', <<expression>>, '')'', <<block>>
-		],
-		function(parsed, text) {
-			call(`if, [parsed."expression", literal(parsed."block")]);
-		}
-	)
-];
-
-insert(Parser.statement, 0, Parser.rule(
-	"statement",
-	[
-		<<if>>
-	],
-	function(parsed, text) {
-		parsed."if";
-	}
-));
-
-// syntax for assertion
-function assert(condition) {
-	if (not(condition)) {
-		print("Assertion failed.");
-		exit(1);
-	}
-}
-
-Parser.assert = [Parser.rule(
-	"assert",
-	[
-		''#'', <<expression>>, '';''
-	],
-	function(parsed, text) {
-		call(`assert, [parsed."expression"]);
-	}
-)];
-
-insert(Parser.statement, 0, Parser.rule(
-	"statement",
-	[
-		<<assert>>
-	],
-	function(parsed, text) {
-		parsed."assert";
-	}
-));
 
 // syntax for structs
 Parser.struct = [Parser.rule(
@@ -250,6 +191,124 @@ insert(Parser.statement, 0, Parser.rule(
 ));
 
 struct bool {
-	record false();
-	record true();
+	record _false();
+	record _true();
+}
+
+// we use a single instance of the booleans for easier comparison
+false = bool._false();
+
+true = bool._true();
+
+// executes the `then block if the condition is `true
+// executes the `else block if the condition is `false
+function if(condition, then, else) {
+	match(condition, [
+		[true, function() { ~ (then); }],
+		[false, function() { ~ (else); }],
+	]);
+}
+
+function not(boolean) {
+	match(boolean, [
+		[true, function() { false; }],
+		[false, function() { true; }],
+	]);
+}
+
+// if statement
+Parser.if = [
+	Parser.rule(
+		"if",
+		[
+			''if'', ''('', <<expression>>, '')'', <<block>>, ''else'', <<block as `block2>>
+		],
+		function(parsed, text) {
+			call(`if, [parsed."expression", literal(parsed."block"), literal(parsed."block2")]);
+		}
+	),
+	Parser.rule(
+		"if",
+		[
+			''if'', ''('', <<expression>>, '')'', <<block>>
+		],
+		function(parsed, text) {
+			call(`if, [parsed."expression", literal(parsed."block"), literal(`{})]);
+		}
+	)
+];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<if>>
+	],
+	function(parsed, text) {
+		parsed."if";
+	}
+));
+
+// syntax for assertion
+function assert(condition) {
+	if (not(condition)) {
+		print("Assertion failed.");
+		exit(1);
+	}
+}
+
+Parser.assert = [Parser.rule(
+	"assert",
+	[
+		''#'', <<expression>>, '';''
+	],
+	function(parsed, text) {
+		call(`assert, [parsed."expression"]);
+	}
+)];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<assert>>
+	],
+	function(parsed, text) {
+		parsed."assert";
+	}
+));
+
+// try statement
+Parser.try = [
+	Parser.rule(
+		"try",
+		[
+			''try'', <<block>>, ''except'', <<block as `block2>>
+		],
+		function(parsed, text) {
+			call(`try, [literal(parsed."block"), literal(parsed."block2")]);
+		}
+	),
+];
+
+insert(Parser.statement, 0, Parser.rule(
+	"statement",
+	[
+		<<try>>
+	],
+	function(parsed, text) {
+		parsed."try";
+	}
+));
+
+
+// `eq should be symmetric, so we will move it from method to function
+function eq(left, right) {
+	try {
+		left.eq(right);
+	} except /* (KeyError) */ { // TODO: implement pattern matching on errors
+		try {
+			right.eq(right);
+		} except /* (KeyError) */ {
+			is(left, right);
+		}
+	}
 }

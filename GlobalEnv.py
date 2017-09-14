@@ -2,15 +2,14 @@ import sys;
 
 import Data.Function;
 import Data.Value;
-import Data.Environment;
 import Data.Struct;
 
-globalEnv = Data.Environment.Environment(None, "Global");
+from Data.Environment import Environment
+from pyswail.bootstrap import returns_bool
+from pyswail.matching import MatchError
 
+globalEnv = Environment(None, "Global")
 globalEnv.SetVariable(Data.Value.Variable("Global"), globalEnv);
-
-globalEnv.SetVariable(Data.Value.Variable("true"), Data.Value.Bool(True));
-globalEnv.SetVariable(Data.Value.Variable("false"), Data.Value.Bool(False));
 
 def evalFunction(callEnv, args):
 	return args[0].Evaluate(callEnv);
@@ -21,11 +20,6 @@ def addFunction(callEnv, args):
 	return Data.Value.Integer(args[0]._value + args[1]._value);
 
 globalEnv.SetVariable(Data.Value.Variable("add"), Data.Function.PredefinedFunction("<lambda>", ["a", "b"], [], addFunction));
-
-def eqFunction(callEnv, args):
-	return Data.Value.Bool(args[0] == args[1]);
-
-globalEnv.SetVariable(Data.Value.Variable("eq"), Data.Function.PredefinedFunction("<lambda>", ["a", "b"], [], eqFunction));
 
 def defFunction(callEnv, args):
 	callEnv.SetVariable(args[0], args[1]);
@@ -86,11 +80,6 @@ def literalFunction(callEnv, args):
 
 globalEnv.SetVariable(Data.Value.Variable("literal"), Data.Function.PredefinedFunction("<lambda>", ["value"], [], literalFunction));
 
-def notFunction(callEnv, args):
-	return Data.Value.Bool(not args[0]);
-
-globalEnv.SetVariable(Data.Value.Variable("not"), Data.Function.PredefinedFunction("<lambda>", ["value"], [], notFunction));
-
 def recordFunction(callEnv, args):
 	name = args[0]
 	fields = args[1]
@@ -112,17 +101,35 @@ def structFunction(callEnv, args):
 globalEnv.SetVariable(Data.Value.Variable("struct"), Data.Function.PredefinedFunction("<lambda>", ["records"], [], structFunction));
 
 def matchFunction(callEnv, args):
-	record = args[0]
-	options = args[1]
+	record, options = args
 	
 	for option in options:
-		option = option._value
-		format = option[0]
-		function = option[1]
-		if format == record._get("type"):
-			return function.Call(callEnv, record.values)
+		pattern, function = option._value
+		try:
+			bindings = pattern.match(record)
+			# TODO: actually bind them
+			return function.Call(callEnv, bindings.values())
+		except MatchError:
+			pass
 	
-	raise Exception("Incomplete pattern for {}".format(record))
+	raise MatchError("incomplete pattern for {}".format(record))
 
 globalEnv.SetVariable(Data.Value.Variable("match"), Data.Function.PredefinedFunction("<lambda>", ["record", "options"], [], matchFunction));
 
+@returns_bool
+def is_function(callEnv, lhs, rhs):
+	"""Are these two references pointing to the same object?"""
+	return lhs == rhs
+
+globalEnv.SetVariable(Data.Value.Variable("is"), Data.Function.PredefinedFunction("<lambda>", ["left", "right"], [], is_function));
+
+def try_function(callEnv, args):
+	"""Execute the attempted block until an exception occurs, then execute the reparation block."""
+	attempted, reparation = args
+
+	try:
+		return attempted.Evaluate(callEnv)
+	except Exception as e: # TODO: make this only exceptions raised by Swail
+		return reparation.Evaluate(callEnv)
+
+globalEnv.SetVariable(Data.Value.Variable("try"), Data.Function.PredefinedFunction("<lambda>", ["attempted", "reparation"], [], try_function));

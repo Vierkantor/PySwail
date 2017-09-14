@@ -1,6 +1,9 @@
 import Data.Data;
 import Data.Type;
 
+from pyswail.bootstrap import returns_bool
+from pyswail.matching import MatchError
+
 # basically a name for / reference to other data
 variableType = Data.Type.Type("Variable");
 
@@ -11,12 +14,19 @@ class WrappedValue(Data.Data.DataValue):
 		
 		Data.Data.DataValue.__init__(self, type, name);
 		self._value = value;
+		self._set("eq", returns_bool(self.__eq__))
 	
 	def Construct(self, env):
 		pass;
 	
 	def Evaluate(self, env):
 		return self;
+	
+	def match(self, other):
+		"""Determine whether the other record is an instance of this one."""
+		if self == other:
+			return {}
+		raise MatchError
 	
 	# equality operators
 	def __eq__(self, other):
@@ -65,12 +75,6 @@ integerType = Data.Type.Type("Integer");
 class Integer(WrappedValue):
 	def __init__(self, value = 0):
 		WrappedValue.__init__(self, integerType, value);
-
-boolType = Data.Type.Type("Bool");
-
-class Bool(WrappedValue):
-	def __init__(self, value):
-		WrappedValue.__init__(self, boolType, value);
 
 stringType = Data.Type.Type("String");
 

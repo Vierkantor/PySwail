@@ -41,17 +41,35 @@ eq;
 
 2;
 
+-1;
+
 add;
 
 # eq(1, 1);
 
+# not(eq(0, 1));
+
 // fibonacci sequence
 function fibonacci(i) {
-	if (eq(i, 0)) {
-		return 0;
-	}
-	if (eq(i, 1)) {
-		return 1;
-	}
-	return add(fibonacci(add(i, -1)), fibonacci(add(i, -2)));
+	match(i, [
+		[0, function() {0;}],
+		[1, function() {1;}],
+		[`_, function() {
+			add(fibonacci(add(i, -1)), fibonacci(add(i, -2)));
+		}],
+	]);
 }
+
+# eq(fibonacci(0), 0);
+
+//# eq(fibonacci(1), 1);
+
+//# eq(fibonacci(2), 1);
+
+//# eq(fibonacci(3), 2);
+
+//# eq(fibonacci(4), 3);
+
+//# eq(fibonacci(5), 5);
+
+//# eq(fibonacci(6), 8);

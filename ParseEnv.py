@@ -286,7 +286,7 @@ parseEnv.SetVariable(Data.Value.Variable("token"), Data.Value.List([
 def makeRule(callEnv, args):
 	return Data.Parser.ParseRule(args[0]._value, args[1], args[2]);
 
-parseEnv.SetVariable(Data.Value.Variable("rule"), 
+parseEnv.SetVariable(Data.Value.Variable("rule"),
 	Data.Function.PredefinedFunction("<lambda>", ["name", "matchlist", "resolver"], [], makeRule),
 	True
 );
